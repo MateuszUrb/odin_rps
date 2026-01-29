@@ -1,4 +1,14 @@
-const HAND_OPT = ["rock", "paper", "scissors"];
+const CHOICES = ["rock", "paper", "scissors"];
+const CONTAINER = document.querySelector("#container");
+const STORE = {
+  humanScore: 0,
+  computerScore: 0,
+};
+let playerSelection = "";
+
+const roundResult = document.createElement("div");
+const scoreBoard = document.createElement("p");
+const choicesDisplay = document.createElement("div");
 
 const rules = {
   rock: { beats: "scissors", message: "Rock beats scissors" },
@@ -7,54 +17,77 @@ const rules = {
 };
 
 function getComputerChoice() {
-  let randomizeHand = Math.floor(Math.random() * HAND_OPT.length);
-  return HAND_OPT[randomizeHand];
+  let randomizeHand = Math.floor(Math.random() * CHOICES.length);
+  return CHOICES[randomizeHand];
 }
 
 function getHumanChoice() {
-  const userInput = prompt("Enter: rock|paper|scissors: ");
-	if (userInput === null) return getHumanChoice()
-  if (Number.isInteger(+userInput)) {
-    console.warn("Enter only rock paper or scissors");
-    return getHumanChoice();
-  }
-  return userInput.toLowerCase();
+  return playerSelection.toLowerCase();
 }
 
-function playGame() {
-  const store = {
-    humanScore: 0,
-    computerScore: 0,
-  };
-
-  for (let i = 0; i < 5; i++) {
-    const humanSelection = getHumanChoice();
-    const computerSelection = getComputerChoice();
-    playRound(humanSelection, computerSelection, store);
-  }
-
-  console.log(
-    `Final Score: Player ${store.humanScore} | Computer ${store.computerScore}`,
-  );
-
-  if (store.computerScore > store.humanScore) {
-    console.log("YOU LOSE!");
-  } else {
-    console.log("YOU LOSE!");
-  }
+function createButton(text, choice) {
+  const button = document.createElement("button");
+  button.textContent = text;
+  button.addEventListener("click", () => {
+    playerSelection = choice;
+    playGame();
+  });
+  return button;
 }
 
-function playRound(humanChoice, computerChoice, store) {
+function updateUI() {
+  scoreBoard.textContent = `COMPUTER: ${STORE.computerScore} | PLAYER: ${STORE.humanScore}`;
+}
+
+function resetGame() {
+  STORE.computerScore = 0;
+  STORE.humanScore = 0;
+  updateUI();
+  choicesDisplay.textContent = "";
+}
+
+function checkWinCondition() {
+  if (STORE.humanScore === 5) {
+    roundResult.textContent = "Congratulations! You won the game!";
+    resetGame();
+  } else if (STORE.computerScore === 5) {
+    roundResult.textContent = "Computer wins the game! Better luck next time!";
+    resetGame();
+  }
+}
+function initializeGame() {
+  CONTAINER.innerHTML = "";
+  CHOICES.forEach((choice) => {
+    const button = createButton(
+      choice.charAt(0).toUpperCase() + choice.slice(1),
+      choice,
+    );
+    CONTAINER.appendChild(button);
+  });
+  CONTAINER.append(scoreBoard, choicesDisplay, roundResult);
+  updateUI();
+}
+
+function playRound(humanChoice, computerChoice) {
+  choicesDisplay.textContent = `You chose: ${humanChoice}, Computer chose: ${computerChoice}`;
   if (humanChoice === computerChoice) {
-    console.log("TIE!");
+    roundResult.textContent = "TIE!";
     return;
   }
   if (rules[humanChoice].beats === computerChoice) {
-    console.log(`YOU WIN! ${rules[humanChoice].message}`);
-    store.humanScore++;
+    roundResult.textContent = `YOU WIN! ${rules[humanChoice].message}`;
+    STORE.humanScore++;
   } else {
-    console.log(`YOU LOSE! ${rules[computerChoice].message}`);
-    store.computerScore++;
+    roundResult.textContent = `YOU LOSE! ${rules[computerChoice].message}`;
+    STORE.computerScore++;
   }
 }
-playGame();
+
+function playGame() {
+  const humanSelection = getHumanChoice();
+  const computerSelection = getComputerChoice();
+  playRound(humanSelection, computerSelection);
+  updateUI();
+  checkWinCondition();
+}
+initializeGame();
